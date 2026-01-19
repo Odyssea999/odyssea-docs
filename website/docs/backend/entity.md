@@ -29,11 +29,11 @@ export class UserEntity {
 
 ## 2. **Définir une clé primaire proprement**
 
-Utilise `@PrimaryGeneratedColumn('uuid')` pour générer un identifiant universel unique (UUID).
+Utilise `@PrimaryColumn({ type: 'uuid' })` pour une définition propre.
 
 ```typescript
-@PrimaryGeneratedColumn("uuid")
-id: string;
+@PrimaryColumn({ type: 'uuid' })
+uuid: string;
 ```
 
 ✅ **Conseil** : Utilise toujours `uuid` sauf cas spécifique pour éviter les collisions d'ID.
@@ -66,15 +66,6 @@ firstName: string;
 role: UserRole;
 ```
 
-- **Timestamps** : Utilise un composant `@Column(() => EmbeddedEntity)` pour centraliser createdAt/updatedAt.
-
-```typescript
-@Column(() => TimestampEntity, { prefix: false })
-timestamps: TimestampEntity;
-```
-
-✅ **Conseil** : Crée toujours une `TimestampEntity` pour factoriser les dates.
-
 ---
 
 ## 5. **Créer les relations propres**
@@ -104,22 +95,7 @@ teachingCourses: CourseEntity[];
 
 ---
 
-## 6. **Utiliser Automapper pour simplifier les transformations**
-
-Décore les champs avec `@AutoMap()` pour les rendre compatibles avec des outils de mapping automatique.
-
-```typescript
-@AutoMap()
-@Column()
-username: string;
-```
-
-✅ **Conseil** :  
-Toujours mettre `@AutoMap()` sur les propriétés exposées côté DTO ou API.
-
----
-
-## 7. **Séparer métier et technique**
+## 6. **Séparer métier et technique**
 
 Dans ton entité, ne mets que :
 - La structure des données
@@ -131,7 +107,7 @@ Pas de logique métier complexe ici (ex : pas de méthode `.register()`, `.calcu
 
 ---
 
-## 8. **Architecture propre autour d'une Entity**
+## 7. **Architecture propre autour d'une Entity**
 
 **Une bonne Entité** est :
 

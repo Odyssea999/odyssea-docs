@@ -97,8 +97,6 @@ export class AuthService implements IAuthService {
 }
 ```
 
-Le `Mapper` est injecté pour permettre d'effectuer des transformations de modèles si besoin (préparation pour des cas futurs).
-
 ---
 
 # 4. Déclaration du Provider
@@ -110,15 +108,11 @@ import { Provider } from "@nestjs/common/interfaces/modules/provider.interface";
 import { IAuthService } from "./auth.service.interface";
 import { AuthService } from "./auth.service";
 
-/// Classes nécessaires pour le mapping (optionnel pour l'instant)
-const MapperClasses = [];
-
 export const AuthProvider: Array<Provider> = [
   {
     provide: IAuthService,
     useClass: AuthService,
   },
-  ...MapperClasses,
 ];
 ```
 
@@ -126,14 +120,7 @@ Cela permet aux autres parties de l'application (comme les Controllers) d'inject
 
 ---
 
-# 5. Utilisation d'AutoMapper
-
-Le `Mapper` est préparé pour transformer des entités en DTOs.  
-Actuellement, il n'est pas encore utilisé, mais sa présence dans le service anticipe des besoins futurs pour éviter d'exposer directement les entités.
-
----
-
-# 6. Respect de la Clean Architecture
+# 5. Respect de la Clean Architecture
 
 - **Dépendances inversées** : Le `Controller` dépend de l'interface `IAuthService`, pas de `AuthService`.
 - **Séparation claire** :
@@ -144,7 +131,7 @@ Actuellement, il n'est pas encore utilisé, mais sa présence dans le service an
 
 ---
 
-# 7. Résumé des rôles
+# 6. Résumé des rôles
 
 | Élément         | Rôle principal                                          |
 |-----------------|----------------------------------------------------------|

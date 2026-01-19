@@ -32,13 +32,6 @@ const teamMembers = [
     imgSrc: '/img/team/abed.jpeg',
   },
   {
-    name: 'AZLOUK Wessim',
-    role: 'Développeur full-stack',
-    email: 'wessim.azlouk@edu.esiee-it.fr',
-    bio: 'Wessim est un développeur passionné par la technologie et la création de solutions numériques élégantes. Sa spécialité en développement mobile lui permet de transformer des idées novatrices en applications fonctionnelles et engageantes.',
-    imgSrc: '/img/team/dev.png',
-  },
-  {
     name: 'BALAKRISHNAN Jeremy',
     role: 'Développeur full-stack',
     email: 'jeremy.balakrishnan@edu.esiee-it.fr',
