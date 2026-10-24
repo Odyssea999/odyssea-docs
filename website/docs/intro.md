@@ -32,9 +32,9 @@ Découvrez les membres de notre équipe, leurs rôles et leurs coordonnées.
 
 ### Frontend
 
-- [Aperçu](/docs/frontend/overview) : Vue d'ensemble de l'API backend et ses fonctionnalités principales.
-- [Configuration](/docs/frontend/setup) : Instructions pour installer et configurer le backend.
-- [Général](/docs/frontend/general) : Instructions générale sur le projet.
+- [Aperçu](/docs/frontend/overview) : Vue d'ensemble de l'application web et ses fonctionnalités principales.
+- [Configuration](/docs/frontend/setup) : Instructions pour installer et configurer le frontend.
+- [Général](/docs/frontend/general) : Instructions générales sur le projet.
 - [Components](/docs/frontend/components) : Instructions sur l'utilisation des composants.
 - [Traduction](/docs/frontend/traduction) : Instructions pour la gestion des traductions.
 - [ApiRoute](/docs/frontend/apiRoutes) : Instructions pour la gestion des endpoints côté front.

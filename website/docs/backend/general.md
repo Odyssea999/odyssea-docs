@@ -2,81 +2,45 @@
 id: general
 title: Général
 ---
-## 📁 Organisation des Répertoires
 
-L'organisation des répertoires suit les principes de la séparation des responsabilités tout en intégrant les concepts de l'architecture **Domain-Driven Design (DDD)**. Cette structure assure que la logique métier reste isolée des détails techniques.
+## Organisation des répertoires
 
-### `Domain` Directory (Noyau)
+L'API suit une organisation inspirée de l'architecture hexagonale / DDD présente dans le code.
 
-Ce répertoire constitue le cœur de l'application. Il est **agnostique** (ne doit dépendre d'aucun framework ou bibliothèque externe).
+### `src/domain/`
+Cœur métier agnostique du framework. Contient les entités métier, les contrats/interfaces (repositories, services) et la logique pure.
 
-* **`Models` ou `Entity**` :
-* Définit les entités métier et les schémas de données (ex. : table `User`).
+### `src/application/`
+Orchestration des cas d'utilisation. Contient les services métier, les mappers entre couches et les providers (`*Provider.ts` / modules application).
 
+### `src/infrastructure/`
+Détails techniques. Contient les entités TypeORM, les DTOs, les implémentations de repositories, les mappers infra, la configuration, les providers externes (S3, etc.).
 
-* **`Repository`** :
-* Contient uniquement les **interfaces** (contrats). Cela définit *ce que* le système peut faire avec les données sans préciser *comment* (ex: `IUserRepository`).
+### `src/api/`
+Couche d'exposition HTTP. Contient les contrôleurs, `ControllerModule`, les réponses (`ActionResponse`) et utilitaires Swagger. Les contrôleurs étendent généralement `AbstractController`.
 
+### `src/socket/`
+Communication temps réel. Contient les gateways Socket.IO, services WebSocket et définitions d'événements.
 
+### `src/shared/`
+Éléments transversaux. Contient enums, guards, décorateurs (`@Roles`), filtres d'exception globaux, utils, constantes et templates.
 
-### `Infrastructure` Directory (Détails techniques)
+### `src/app.module.ts`
+Module racine qui importe les modules principaux (`ApplicationProxyModule`, `ControllerModule`, `TypeOrmModule`, etc.) et configure les guards globaux (notamment `ThrottlerGuard`).
 
-Ce répertoire gère la communication avec les outils externes (Base de données, API tierces).
+## Règles observées dans le code
 
-* **`Dto` (Data Transfer Objects)** :
-* Objets structurés pour l'entrée et la sortie des données (ex. : `AuthLoginDto`, `UserReadDto`).
+- **Interfaces vs implémentations** : Les services/repositories sont souvent injectés via des tokens/interfaces (inversion de dépendance). Des modules `*Provider` permettent de lier interface et classe concrète.
+- **DTOs** : Les DTOs sont dans `infrastructure/dto/`. La validation est activée globalement via `ValidationPipe` (`transform`, `whitelist`, `forbidNonWhitelisted`).
+- **Contrôleurs** : Héritent de `AbstractController` et utilisent `this.execute(...)` pour uniformiser la réponse (`ActionResponse`).
+- **Authentification** : `JwtAuthGuard` extrait le token depuis le cookie, vérifie via `JwtHelper` et attache `request.user`. `RoleGuard` s'appuie sur le décorateur `@Roles(...)`.
+- **Base de données** : TypeORM avec `autoLoadEntities: true`. Les migrations sont gérées via les scripts npm `migration:*`.
+- **Sécurité HTTP** : `helmet`, `compression`, `cookie-parser`, CORS configuré, `trust proxy` activé.
+- **API** : Préfixe global `api`, documentation Swagger sur `/docs`.
 
+## Points de vigilance
 
-* **`Repository`** :
-* **Implémentations** concrètes des interfaces du `Domain` (ex: utilisation de TypeORM ou Prisma pour requêter la base).
-
-
-* **`Mapper`** :
-* Classes de transformation. Exemple : conversion d'une `UserEntity` (DB) en un `UserReadDto` (API) pour masquer les mots de passe.
-
-
-* **`Config`** :
-* Configurations spécifiques (Schémas, TypeORM, connexions Redis/MongoDB).
-
-
-
-### `Application` Directory (Logique métier)
-
-Ce répertoire orchestre les cas d'utilisation de l'application.
-
-* **`Services`** :
-* Contient la logique métier pure (ex: `AuthService`). C'est ici que l'on manipule les dépôts pour répondre à un besoin utilisateur.
-
-
-* **`Common`** :
-* Utilitaires, décorateurs personnalisés, ou constantes partagés entre les services.
-
-
-
-### `Api` Directory (Exposition)
-
-C'est la porte d'entrée de l'application (couche de transport).
-
-* **`Controller`** :
-* Définit les routes HTTP, gère les requêtes entrantes et renvoie les réponses. Il appelle les services de la couche `Application`.
-
-
-
-### `Socket` Directory
-
-* **`Gateways` & `Events**` :
-* Regroupe tous les éléments liés à la communication temps réel (WebSockets), séparés du flux HTTP classique.
-
-
-
----
-
-### 📖 Pour plus d'informations
-
-Consultez la [documentation officielle de NestJS](https://docs.nestjs.com/) pour approfondir la gestion des modules et des fournisseurs de données.
-
----
-
-### 🎯 Bon développement ! 🚀
-
-Souhaitez-vous que je détaille également l'arborescence des fichiers pour un module spécifique (ex: le module `Auth`) ?
+- Respecter la séparation des couches : `domain` ne doit pas dépendre de `infrastructure`/framework
+- Ne pas mettre de logique métier dans les contrôleurs ou dans les entités TypeORM
+- Toujours passer par les DTOs pour les entrées/sorties HTTP
+- Utiliser les guards/décorateurs existants pour l'authentification et l'autorisation

@@ -4,148 +4,39 @@ title: Repository
 ---
 # Repository
 
-Cette partie décrit la structure et le fonctionnement du **repository d'authentification**.
+## Rôle
 
----
+Les repositories gèrent l'accès aux données. Dans ce projet, on observe le pattern suivant :
+- Contrats/interfaces définis dans `domain/` ou côté application selon le module
+- Implémentations concrètes dans `src/infrastructure/repository/` (souvent suffixées `-impl.repository.ts`)
+- Utilisation de TypeORM pour interagir avec les entités
+- Le service dépend du contrat, pas de l'implémentation
 
-# 1. Mise en place du Repository
+## Organisation
 
-Le repository `AuthImplRepository` est situé dans `/infrastructure/repository/auth/`.
-
-Il implémente l'interface `IAuthRepository` et sert à :
-- Gérer l'interaction avec la base de données via TypeORM.
-- Gérer le stockage et la validation des refresh tokens.
-- Gérer la création de comptes utilisateurs et la connexion.
-- Envoyer des emails de confirmation d'inscription.
-- S'assurer de la sécurité via cryptage et hashing.
-
----
-
-# 2. Interface du Repository
-
-L'interface `IAuthRepository` définit les opérations que l'implémentation doit respecter :
-
-```typescript
-import { IRefreshTokenModel } from "@domain/models/auth/refresh-token.model";
-import { LoginUserDto } from "@infrastructure/dto/auth/login-user.dto";
-import { RegisterUserDto } from "@infrastructure/dto/auth/register-user.dto";
-
-export interface IAuthRepository {
-  /**
-   * Créer un utilisateur
-   */
-  createUser(credentials: RegisterUserDto): Promise<Object>;
-
-  /**
-   * Connecter un utilisateur
-   */
-  login(credentials: LoginUserDto): Promise<Object>;
-
-  /**
-   * Valider un utilisateur via un token
-   */
-  validateUser(token: string): Promise<Object>;
-}
+```text
+src/infrastructure/repository/
+├── user/
+├── auth/           # exemple si présent
+├── board/
+├── course/
+├── promotion/
+├── attendance/
+└── ...
 ```
 
----
+## Exemple observé : AuthImplRepository
 
-# 3. Implémentation du Repository
+`src/infrastructure/repository/auth/auth-impl.repository.ts` illustre l'approche :
+- Injectable avec `@Injectable()`
+- Injection des repositories TypeORM via `@InjectRepository(...)`
+- Utilisation de services techniques : `JwtService`, `CryptoSecurity`, `EmailService`, `ConfigService`
+- Implémente l'interface correspondante
 
-Le `AuthImplRepository` utilise :
-- `TypeORM` pour interagir avec les entités `UserEntity` et `RefreshTokenEntity`.
-- `JwtService` pour signer et vérifier des tokens.
-- `CryptoSecurity` pour hasher et crypter/décrypter les données sensibles.
-- `EmailService` pour envoyer des emails de confirmation.
+## Bonnes pratiques
 
-```typescript
-@Injectable()
-export class AuthImplRepository implements IAuthRepository {
-  constructor(
-    @InjectRepository(RefreshTokenEntity)
-    private readonly refreshTokenRepository: Repository<IRefreshTokenModel>,
-    @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
-    private readonly emailService: EmailService,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-  ) {}
-```
-
----
-
-# 4. Principales méthodes
-
-## `createUser`
-
-- Crée un nouvel utilisateur avec un mot de passe hashé.
-- Génère un token de vérification et envoie un email de confirmation.
-- S'assure que l'email n'est pas déjà utilisé.
-
-```typescript
-async createUser(credentials: RegisterUserDto): Promise<{ id: string }>
-```
-
----
-
-## `login`
-
-- Authentifie un utilisateur avec email et mot de passe.
-- Vérifie que l'email est validé et que le compte est activé.
-- Génére un `access_token` JWT et un `refresh_token` stocké dans la base.
-
-```typescript
-async login(credentials: LoginUserDto): Promise<{ access_token: string }>
-```
-
----
-
-## `validateUser`
-
-- Valide le compte d'un utilisateur via un token JWT envoyé par email.
-- Active l'utilisateur et confirme son email.
-
-```typescript
-async validateUser(token: string): Promise<{ message: string }>
-```
-
----
-
-# 5. Méthodes additionnelles
-
-## `create`
-
-- Sauvegarde un refresh token encrypté en base.
-
-## `findByUserId`
-
-- Récupère les refresh tokens actifs d'un utilisateur.
-
-## `deleteByUserId`
-
-- Supprime un refresh token pour un utilisateur.
-
-## `generateUniqueUsername`
-
-- Génère automatiquement un nom d'utilisateur unique basé sur prénom + nom.
-
----
-
-# 6. Sécurité et bonnes pratiques
-
-- **Hashing des mots de passe** via `CryptoSecurity.hashPassword`.
-- **Chiffrement des tokens** dans la base via `CryptoSecurity.encryptData`.
-- **Gestion sécurisée des erreurs** avec des exceptions spécifiques (`BadRequestException`, `UnauthorizedException`, `InternalServerErrorException`, etc).
-- **Utilisation de JWT RSA** (`RS256`) pour signer les tokens avec clé privée en base64.
-
----
-
-# 7. Architecture
-
-| Élément            | Rôle                                                      |
-|--------------------|------------------------------------------------------------|
-| AuthImplRepository | Implémente l'interface de repository pour l'authentification |
-| TypeORM            | ORM utilisé pour accéder à la base de données               |
-| JwtService         | Génération et validation de JWT                            |
-| CryptoSecurity     | Chiffrement/déchiffrement et hashing                        |
-| EmailService       | Envoi des mails de confirmation d'inscription               |
+- Ne pas contenir de logique métier dans le repository : uniquement accès/persistance/transformation minimale
+- Utiliser les entités TypeORM définies dans `src/infrastructure/entity/`
+- Mapper si nécessaire entre entités et modèles de domaine
+- Gérer les erreurs de manière cohérente avec le reste de l'application
+- Respecter l'unité de travail si utilisée (`infrastructure/shared/uow/`)

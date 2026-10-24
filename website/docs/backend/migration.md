@@ -3,54 +3,33 @@ id: migration
 title: Migration
 ---
 
-# TypeORM Migrations
+# Migrations TypeORM
 
-Cette partie explique comment utiliser les commandes de migration TypeORM définies dans le projet.
+## Commandes disponibles
 
-## Commandes de migration
+Dans `odyssea-api/package.json` :
 
-### 1. Générer une migration
+| Commande | Description |
+| --- | --- |
+| `npm run migration:generate -- <Nom>` | Génère une migration à partir des différences entre entités et schéma |
+| `npm run migration:create -- <Nom>` | Crée un fichier de migration vide à compléter manuellement |
+| `npm run migration:run` | Applique les migrations en attente |
+| `npm run migration:revert` | Annule la dernière migration appliquée |
 
-```sh
-npm run migration:generate -- <NomDeLaMigration>
-```
+## Exemples
 
-📌 **Exemple :**
-```sh
-npm run migration:generate -- ajout_utilisateur
-```
-Cette commande génère une nouvelle migration en fonction des changements détectés dans les entités TypeORM.
-
-### 2. Créer une migration manuellement
-
-```sh
-npm run migration:create -- <NomDeLaMigration>
-```
-
-📌 **Exemple :**
-```sh
-npm run migration:create -- ajout_table_produits
-```
-Cette commande crée une nouvelle migration vide que vous devez compléter manuellement.
-
-### 3. Exécuter les migrations
-
-```sh
+```bash
+npm run migration:generate -- ajout-champ-user
+npm run migration:create -- mise-a-jour-custom
 npm run migration:run
-```
-
-Cette commande applique toutes les migrations en attente à la base de données.
-
-### 4. Annuler la dernière migration
-
-```sh
 npm run migration:revert
 ```
 
-Cette commande annule la dernière migration exécutée.
+## Bonnes pratiques
 
-## Remarques
-- **Toujours s'assurer que la base de données est bien connectée avant d'exécuter les migrations.**
-- **Utiliser `migration:generate` pour générer des migrations automatiquement à partir des entités.**
-- **Si vous souhaitez modifier une migration déjà appliquée, utilisez `migration:revert` avant d'apporter des changements.**
+- Vérifier la connexion à la base de données avant d'exécuter les migrations
+- Utiliser `migration:generate` quand possible à partir des entités TypeORM
+- Examiner le fichier de migration généré avant de l'appliquer
+- Ne pas modifier une migration déjà appliquée en production : créer une nouvelle migration ou revert puis corriger si nécessaire
+- Les entités sont dans `src/infrastructure/entity/` et chargées via `autoLoadEntities: true` dans `AppModule`
 

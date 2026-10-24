@@ -3,117 +3,36 @@ id: components
 title: Component
 ---
 
-# Component
+# Composants
 
-## Introduction
-Les composants sont les blocs de construction fondamentaux d'une application Angular. Chaque composant est une classe TypeScript qui est associée à un template HTML et une feuille de styles CSS.
+## Organisation
 
-## Structure d'un Composant
-Un composant Angular est défini par un décorateur `@Component` et comprend les éléments suivants :
+- **`src/app/shared/ui/`** : Composants UI génériques et réutilisables (button, input, dialog, table, select, etc.). Ces composants forment la base de l'interface.
+- **`src/app/shared/components/`** : Composants métier/réutilisables plus complexes (explorer, layout, board, etc.)
+- **`src/app/pages/`** : Composants de page spécifiques à un domaine/fonctionnalité
 
-```typescript
-import { Component } from '@angular/core';
+## Création
 
-@Component({
-  selector: 'od-example',
-  templateUrl: './example.component.html',
-  styleUrls: ['./example.component.css']
-})
-export class ExampleComponent {
-  title: string = 'Hello Angular';
-}
+Utiliser Angular CLI :
+
+```bash
+ng generate component <nom-composant>
+# ou
+ng g c <chemin>/<nom-composant>
 ```
 
-### Explication des éléments :
-- **selector** : Définit la balise HTML permettant d'utiliser le composant.
-- **templateUrl** : Indique le fichier HTML associé.
-- **styleUrls** : Liste des fichiers CSS associés.
-- **Classe TypeScript** : Contient les propriétés et méthodes utilisées dans le template.
+Suivre l'organisation existante (composant dans le bon dossier selon son usage).
 
-## Création d'un Composant
-On peut générer un composant Angular via la CLI :
-```sh
-ng generate component nom-du-composant
-```
-ou
-```sh
-ng g c nom-du-composant
-```
+## Communication
 
-Il est également possible de spécifier un chemin pour créer le composant dans un dossier particulier :
-```sh
-ng g c chemin/vers/dossier/nom-du-composant
-```
-Exemple :
-```sh
-ng g c components/shared/button
-```
-Cela créera un composant `button` dans `src/app/components/shared/`.
+- **Parent vers enfant** : `@Input()`
+- **Enfant vers parent** : `@Output()` avec `EventEmitter`
+- **État partagé** : Utiliser les stores NgRx/Signals existants plutôt que de remonter trop profondément
 
-## Communication entre Composants
-### Passer des données du parent vers l'enfant
-Utilisation du décorateur `@Input()` :
+## Bonnes pratiques
 
-```typescript
-import { Component, Input } from '@angular/core';
-
-@Component({
-  selector: 'od-child',
-  template: '<p>{{ data }}</p>'
-})
-export class ChildComponent {
-  @Input() data!: string;
-}
-```
-Dans le parent :
-```html
-<od-child [data]="parentData"></od-child>
-```
-
-### Envoyer des données de l'enfant vers le parent
-Utilisation du décorateur `@Output()` et `EventEmitter` :
-
-```typescript
-import { Component, Output, EventEmitter } from '@angular/core';
-
-@Component({
-  selector: 'od-child',
-  template: '<button (click)="sendData()">Envoyer</button>'
-})
-export class ChildComponent {
-  @Output() notifyParent = new EventEmitter<string>();
-
-  sendData() {
-    this.notifyParent.emit('Donnée envoyée !');
-  }
-}
-```
-Dans le parent :
-```html
-<od-child (notifyParent)="receiveData($event)"></od-child>
-```
-
-## Cycle de Vie d'un Composant
-Angular fournit plusieurs hooks de cycle de vie :
-
-- `ngOnInit()` : Exécuté après l'initialisation du composant.
-- `ngOnChanges()` : Appelé lorsqu'une propriété d'entrée change.
-- `ngOnDestroy()` : Exécuté avant la destruction du composant.
-
-Exemple :
-```typescript
-import { Component, OnInit, OnDestroy } from '@angular/core';
-
-@Component({
-  selector: 'od-example',
-  template: '<p>Exemple</p>'
-})
-export class ExampleComponent implements OnInit, OnDestroy {
-  ngOnInit() {
-    console.log('Composant initialisé');
-  }
-  ngOnDestroy() {
-    console.log('Composant détruit');
-  }
-}
-```
+- Garder les composants de page dans `pages/`, les composants réutilisables dans `shared/`
+- Respecter le pattern existant (standalone ou modules selon le contexte du fichier)
+- Typer explicitement les `@Input()`/`@Output()`
+- Éviter la logique métier dans les composants : déléguer aux services/stores
+- Suivre les conventions de nommage et l'organisation du dossier cible

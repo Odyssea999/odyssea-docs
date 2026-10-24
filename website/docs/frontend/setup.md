@@ -7,7 +7,7 @@ title: Configuration
 
 ## Configuration de votre espace de travail
 
-Ce guide vous aide à installer et exécuter **l'application Frontend & Admin** d'Odyssea sur votre système.
+Ce guide vous aide à installer et exécuter **l'application Frontend** d'Odyssea sur votre système.
 
 ---
 
@@ -31,10 +31,8 @@ Avant de commencer, assurez-vous d'avoir installé les éléments suivants :
 ### 1️⃣ Cloner le dépôt
 
 ```bash
-git clone https://github.com/Odyssea999/web_app.git
-git clone https://github.com/Odyssea999/admin_web_app.git
-cd web_app
-cd admin_web_app
+git clone https://github.com/Odyssea999/odyssea-client-app.git
+cd odyssea-client-app
 ```
 
 ## Lib Interne 

@@ -4,138 +4,50 @@ title: Service
 ---
 # Service
 
-Cette partie explique la mise en place et le rôle du **service d'authentification**.
+## Rôle
 
----
+Les services dans `src/application/services/` orchestrent la logique métier. Ils :
+- Implémentent un contrat (interface) quand le pattern est utilisé
+- Délèguent l'accès aux données aux repositories
+- Ne gèrent pas directement les requêtes HTTP
+- Restent découplés de l'infrastructure via l'inversion de dépendance
 
-# 1. Mise en place du Service
+## Pattern observé
 
-Le service `AuthService` est situé dans le dossier `/application/auth/`.
+Dans le projet, on retrouve souvent :
+- Une interface dans `src/application/services/<domaine>/` (ex. `auth.service.interface.ts`) avec un token `Symbol`
+- Une implémentation concrète (ex. `auth.service.ts`)
+- Un provider (ex. `auth.provider.ts`) pour lier l'interface à l'implémentation
 
-Il implémente l'interface `IAuthService` afin de définir clairement les responsabilités et de faciliter le respect de la **Clean Architecture**.
-
-Le rôle du service est :
-- D'orchestrer la logique métier liée à l'authentification.
-- De déléguer la gestion des données à un `Repository` (ici `AuthImplRepository`).
-- De garantir que les Controllers et autres couches dépendent uniquement d'une **abstraction** (interface) et non d'une implémentation concrète.
-
----
-
-# 2. Structure de l'interface
-
-L'interface `IAuthService` définit les fonctionnalités principales disponibles :
+Exemple : `auth.service.interface.ts` définit le contrat, `AuthService` l'implémente et délègue au repository.
 
 ```typescript
-import { LoginUserDto } from "@infrastructure/dto/auth/login-user.dto";
-import { RegisterUserDto } from "@infrastructure/dto/auth/register-user.dto";
-
 export interface IAuthService {
-  /**
-   * Enregistre un nouvel utilisateur
-   */
   register(credentials: RegisterUserDto): Promise<{ id: string }>;
-
-  /**
-   * Authentifie un utilisateur
-   */
   login(credentials: LoginUserDto): Promise<{ access_token: string }>;
-
-  /**
-   * Rafraîchit un token pour un utilisateur
-   */
   refresh(idUser: string): Promise<{ message: string }>;
-
-  /**
-   * Valide l'authentification d'un utilisateur à partir d'un token
-   */
   validateUser(token: string): Promise<{ message: string }>;
 }
 
 export const IAuthService = Symbol("IAuthService");
 ```
 
-Chaque méthode est asynchrone et renvoie un objet structuré.
+## Injection
 
----
-
-# 3. Implémentation du Service
-
-Le service `AuthService` implémente l'interface `IAuthService` et délègue les opérations au `Repository`.
+Les contrôleurs injectent le service via l'interface :
 
 ```typescript
-import { Injectable } from "@nestjs/common";
-import { InjectMapper } from "@automapper/nestjs";
-import { Mapper } from "@automapper/core";
-import { IAuthService } from "./auth.service.interface";
-import { AuthImplRepository } from "@infrastructure/repository/auth/auth-impl.repository";
-import { LoginUserDto } from "@infrastructure/dto/auth/login-user.dto";
-import { RegisterUserDto } from "@infrastructure/dto/auth/register-user.dto";
-
-@Injectable()
-export class AuthService implements IAuthService {
-  constructor(
-    private readonly authRepository: AuthImplRepository,
-    @InjectMapper()
-    private readonly mapper: Mapper,
-  ) {}
-
-  async register(credentials: RegisterUserDto): Promise<{ id: string }> {
-    return await this.authRepository.createUser(credentials);
-  }
-
-  async login(credentials: LoginUserDto): Promise<{ access_token: string }> {
-    return await this.authRepository.login(credentials);
-  }
-
-  async refresh(idUser: string): Promise<{ message: string }> {
-    return await this.authRepository.refreshToken(idUser);
-  }
-
-  async validateUser(token: string): Promise<{ message: string }> {
-    return await this.authRepository.validateUser(token);
-  }
-}
+constructor(
+  @Inject(IAuthService)
+  private readonly authService: IAuthService,
+) {}
 ```
 
----
+Les providers sont généralement enregistrés dans les modules applicatifs (`ApplicationProxyModule` ou modules dédiés) pour rendre l'injection possible.
 
-# 4. Déclaration du Provider
+## Bonnes pratiques
 
-Pour permettre l'injection par interface (`IAuthService`), un **Provider** est défini :
-
-```typescript
-import { Provider } from "@nestjs/common/interfaces/modules/provider.interface";
-import { IAuthService } from "./auth.service.interface";
-import { AuthService } from "./auth.service";
-
-export const AuthProvider: Array<Provider> = [
-  {
-    provide: IAuthService,
-    useClass: AuthService,
-  },
-];
-```
-
-Cela permet aux autres parties de l'application (comme les Controllers) d'injecter `IAuthService` sans connaître l'implémentation `AuthService`.
-
----
-
-# 5. Respect de la Clean Architecture
-
-- **Dépendances inversées** : Le `Controller` dépend de l'interface `IAuthService`, pas de `AuthService`.
-- **Séparation claire** :
-  - Le **Service** orchestre.
-  - Le **Repository** communique avec la base de données ou Keycloak.
-  - Le **Controller** expose uniquement des endpoints HTTP.
-- **Testabilité accrue** : On peut mocker `IAuthService` pour les tests unitaires.
-
----
-
-# 6. Résumé des rôles
-
-| Élément         | Rôle principal                                          |
-|-----------------|----------------------------------------------------------|
-| IAuthService    | Définir le contrat d'utilisation                         |
-| AuthService     | Implémenter le contrat et orchestrer la logique métier    |
-| AuthProvider    | Permettre l'injection de dépendances par interface        |
-| Mapper          | Transformer les objets (prévu pour des usages futurs)     |
+- Le service orchestre, le repository accède aux données
+- Préférer l'injection par interface pour découpler les couches
+- Garder la logique métier dans la couche `application`
+- Éviter les appels HTTP directs dans le service (ils appartiennent aux contrôleurs/intercepteurs)

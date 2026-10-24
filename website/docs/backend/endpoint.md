@@ -3,128 +3,38 @@ id: endpoint
 title: Endpoint
 ---
 
-# Endpoint
+# Créer un endpoint
 
-Cette partie décrit **comment créer un endpoint** dans le projet en respectant l’architecture **Clean Architecture** et les bonnes pratiques.
+## Flux recommandé
 
-Nous prendrons l'exemple de **l'endpoint `auth/login`** pour illustrer chaque étape.
+Pour ajouter un nouvel endpoint en respectant l'organisation du projet :
 
----
+1. **DTO** (`src/infrastructure/dto/<domaine>/`) - Définir les DTOs d'entrée/sortie avec validation et Swagger
+2. **Contrôleur** (`src/api/controller/<domaine>/`) - Étendre `AbstractController`, utiliser les DTOs, déléguer au service via `this.execute()`
+3. **Service** (`src/application/services/<domaine>/`) - Orchestrer la logique métier, dépendre d'interfaces/repositories
+4. **Repository** (`src/infrastructure/repository/<domaine>/`) - Accès aux données via TypeORM, implémenter le contrat
+5. **Entité/Relations** (`src/infrastructure/entity/`) - Mettre à jour si nécessaire, générer/appliquer une migration
 
-# 🔖 Table des matières
+## Règles à respecter
 
-- [1. Mise en place du DTO](#dto)
-- [2. Mise en place du Controller](#controller)
-- [3. Mise en place du Service](#service)
-- [4. Mise en place du Repository](#repository)
-- [5. Entité et Base de Données](#entity)
+- **Contrôleur** : Pas de logique métier. Injecter le service par interface si le pattern est utilisé (`@Inject(IService)`)
+- **Service** : Orchestration uniquement. Déléguer l'accès aux données aux repositories
+- **Repository** : Uniquement accès aux données. Pas de logique métier
+- **DTOs** : Obligatoires pour les payloads HTTP. Validés par le `ValidationPipe` global
+- **Sécurité** : Utiliser `JwtAuthGuard` / `RoleGuard` + `@Roles(...)` selon les besoins
+- **Documentation** : Ajouter les décorateurs Swagger (`@ApiTags`, `@ApiOperation`, `@ApiResponse`, etc.)
+- **Réponses** : Passer par `AbstractController.execute()` pour uniformiser le format
 
----
-
-## 1. Mise en place du DTO {#dto}
-
-Le DTO (Data Transfer Object) est utilisé pour :
-
-- Définir précisément la structure des données échangées
-- Documenter automatiquement les API avec Swagger (`@ApiProperty`)
-- Effectuer des validations automatiques
-
-Les DTO sont essentiels pour garantir que les données reçues par le Controller sont correctement typées et validées.
-
-👉 Voir [Data Transfer Object (DTO)](/docs/backend/dto.md) pour plus de détails.
-
----
-
-## 2. Mise en place du Controller {#controller}
-
-Le Controller reçoit les requêtes HTTP et délègue au Service.
-
-Caractéristiques du Controller :
-
-- Il **étend `AbstractController`** pour uniformiser la gestion des réponses et des erreurs
-- Les services sont injectés via le `constructor` pour respecter l'inversion de dépendances
-- Il **ne contient pas** de logique métier
-- Il utilise les DTO en entrée/sortie
-
-👉 Voir [Controller](/docs/backend/controller.md) pour plus de détails.
-
----
-
-## 3. Mise en place du Service {#service}
-
-Le Service est responsable de la **logique métier**.
-
-Un Service :
-
-- Implémente une interface (exemple : `IAuthService`)
-- Est indépendant de l'infrastructure (base de données, HTTP, etc.)
-- Peut être facilement testé en isolation
-
-👉 Voir [Service](/docs/backend/service.md) pour plus de détails.
-
----
-
-## 4. Mise en place du Repository {#repository}
-
-Le Repository gère la communication avec la base de données.
-
-Il doit :
-
-- Implémenter une interface
-- Ne contenir **que** des accès aux données (pas de logique métier)
-- Être injecté dans le Service
-
-👉 Voir [Repository](/docs/backend/repository.md) pour plus de détails.
-
----
-
-## 5. Entité et Base de Données {#entity}
-
-L'Entité représente un objet persistant en base.
-
-Elle doit :
-
-- Être décorée avec les annotations ORM (`@Entity`, `@Column`, etc.)
-- Rester indépendante de la couche application
-
-👉 Voir [Entity](/docs/backend/entity.md) pour plus de détails.
-
----
-
-## 🛠️ Flux global simplifié (Mermaid)
+## Flux simplifié
 
 ```mermaid
 sequenceDiagram
-    Client ->> Controller : Envoie une requête (ex: login)
-    Controller ->> Service : Délègue la logique métier
-    Service ->> Repository : Accède aux données
-    Repository -->> Service : Retourne les données
-    Service -->> Controller : Fournit le résultat
-    Controller -->> Client : Envoie la réponse formatée
+    Client ->> Controller : Requête HTTP (DTO validé)
+    Controller ->> Service : Appel métier
+    Service ->> Repository : Accès données
+    Repository -->> Service : Résultat
+    Service -->> Controller : Résultat
+    Controller -->> Client : ActionResponse formatée
 ```
-
-
-## 2. Définir le Service d'Authentification
-
-Le controller fait appel au service `authService`, respectant l'interface `IAuthService`.  
-Ce service contient la logique de connexion : vérification des identifiants, génération du token JWT.
-
-Déclaration du service :
-
-```typescript
-@Module({
-  providers: [
-    {
-      provide: IAuthService,
-      useClass: AuthService, // classe concrète
-    },
-  ],
-  exports: [IAuthService],
-})
-export class AuthModule {}
-```
-
-**À noter :**  
-L'utilisation de `@Inject(IAuthService)` dans le controller permet de respecter l'**inversion de dépendances** et de découpler l'implémentation.
 
 ---
