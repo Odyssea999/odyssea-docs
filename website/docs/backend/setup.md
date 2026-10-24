@@ -6,7 +6,7 @@ title: Configuration
 
 ## Configuration de votre espace de travail
 
-Ce guide vous aide à installer et exécuter l'application back-end `api` avec **PostgreSQL**, **PgAdmin**, et un **réseau Docker**.
+Ce guide vous aide à installer et exécuter l'application back-end `odyssea-api` avec **PostgreSQL**, **PgAdmin**, et un **réseau Docker**.
 
 ---
 
@@ -28,7 +28,7 @@ Avant de commencer, assurez-vous d'avoir installé les éléments suivants :
 
 Le projet doit avoir son propre fichier `.env` pour configurer la base de données et les secrets.
 
-**Exemple pour `api/.env` :**
+**Exemple pour `odyssea-api/.env` :**
 
 ```env
 # Variables Postgres
@@ -84,7 +84,7 @@ NPM_TOKEN=
 ### 1️⃣ Cloner le dépôt
 
 ```bash
-git clone https://github.com/Odyssea999/api.git
+git clone https://github.com/Odyssea999/odyssea-api.git
 
 ```
 
@@ -92,7 +92,7 @@ git clone https://github.com/Odyssea999/api.git
 
 ### 2️⃣ Lancer les conteneurs
 
-Dans le dossier `api/` :
+Dans le dossier `odyssea-api/` :
 
 ```bash
 docker-compose up --build
@@ -100,7 +100,7 @@ docker-compose up --build
 ```
 
 > ⚡ Vérifie que tes logs affichent bien :
-> * `api` disponible sur [http://localhost:4200](https://www.google.com/search?q=http://localhost:4200)
+> * `odyssea-api` disponible sur [http://localhost:4200](https://www.google.com/search?q=http://localhost:4200)
 > * PgAdmin disponible sur [http://localhost:15432](https://www.google.com/search?q=http://localhost:15432)
 > 
 > 
@@ -172,9 +172,3 @@ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ID_
 docker-compose down -v
 
 ```
-
-
-
----
-
-## 🎯 Bon développement avec Odyssea ! 🚀
