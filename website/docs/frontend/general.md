@@ -35,7 +35,7 @@ Contient les éléments globaux chargés une fois :
 - `pipes/`, `directives/`, `utils/`, `enums/`, `types/`, `styles/`
 
 ### `pages/`
-Pages organisées par domaine/fonctionnalité (auth, home, board, courses, pedagogy, attendance, reunions, admin, etc.). Le routage est défini dans `app.routes.ts` avec des routes par espace.
+Pages organisées par domaine/fonctionnalité (auth, home, board, courses, pedagogy, attendance, meeting, admin, etc.). Le routage est défini dans `app.routes.ts` avec des routes par espace.
 
 ### `socket/`
 Logique côté client pour les WebSockets (bridges, providers, événements).
